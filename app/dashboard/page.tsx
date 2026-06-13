@@ -1,6 +1,7 @@
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { redirect } from "next/navigation"
+import { Navbar } from "@/components/navbar"
 
 export default async function DashboardPage() {
     const session = await getServerSession(authOptions)
@@ -11,6 +12,8 @@ export default async function DashboardPage() {
 
 
   return (
+    <div>
+      <Navbar />
     <div className="p-8">
       <h1 className="text-2xl font-bold">Dashboard</h1>
       <p className="text-gray-600 mt-2">
@@ -19,6 +22,7 @@ export default async function DashboardPage() {
       <p className="text-sm text-gray-400 mt-1">
         Role: {session.user.role}
       </p>
+    </div>
     </div>
   )
 }

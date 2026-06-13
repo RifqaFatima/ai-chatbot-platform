@@ -5,7 +5,7 @@ generator client {
 //Datasource Block
 datasource db {
   provider = "postgresql"
-  
+  url      = env("DATABASE_URL")
 }
 
 //restricts values to a fixed set
