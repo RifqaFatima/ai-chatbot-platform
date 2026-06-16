@@ -3,6 +3,7 @@ import { authOptions } from "@/lib/auth"
 import { redirect, notFound } from "next/navigation"
 import { db } from "@/lib/db"
 import { Navbar } from "@/components/navbar"
+import { ChatInterface } from "@/components/chat/chat-interface"
 
 export default async function ChatbotDetailPage({
   params,
@@ -28,21 +29,17 @@ export default async function ChatbotDetailPage({
   }
 
   return (
-    <div>
+     <div>
       <Navbar />
-
-      <div className="p-8">
-        <h1 className="text-2xl font-bold">
-          {chatbot.name}
-        </h1>
-
-        <p className="text-gray-500 text-sm mt-1">
-          ID: {chatbot.id}
-        </p>
-
-        <div className="mt-8 border rounded-lg p-6 text-gray-400 text-center">
-          Chat interface coming tomorrow (Day 5–6)
+      <div className="p-8 max-w-4xl mx-auto">
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold">{chatbot.name}</h1>
+          <p className="text-gray-500 text-sm mt-1">
+            ID: {chatbot.id}
+          </p>
         </div>
+
+        <ChatInterface chatbotId={chatbot.id} />
       </div>
     </div>
   )
