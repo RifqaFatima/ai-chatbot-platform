@@ -4,6 +4,8 @@ import { redirect, notFound } from "next/navigation"
 import { db } from "@/lib/db"
 import { Navbar } from "@/components/navbar"
 import { ChatInterface } from "@/components/chat/chat-interface"
+import { KnowledgeBaseUpload } from "@/components/chat/knowledge-base-upload"
+
 
 export default async function ChatbotDetailPage({
   params,
@@ -39,7 +41,14 @@ export default async function ChatbotDetailPage({
           </p>
         </div>
 
-        <ChatInterface chatbotId={chatbot.id} />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="md:col-span-2">
+            <ChatInterface chatbotId={chatbot.id} />
+          </div>
+          <div>
+            <KnowledgeBaseUpload chatbotId={chatbot.id} />
+          </div>
+        </div>
       </div>
     </div>
   )

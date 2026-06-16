@@ -46,12 +46,33 @@ export async function POST (
         }
 
         //fetch knowledge base for this chatbot
-        const knowledge = await db.knowledgeBase.findMany({
-            where: { chatbotId:id },
+        //via simple keyword-based retrieval from knowledge base
+        //1) fetch all the relevant db rows
+        const allChunks = await db.knowledgeBase.findMany({
+            where: { chatbotId: id },
         })
 
-        const context = knowledge.map((k) => k.rawText).join("\n\n")
+        //2) break the user Q into words
+        const queryWords = message
+        .toLowerCase() //what is react hook and how it works
+        .split(/\s+/) //["what", "is", "react", "hook", "and", "how", "it", "works"]
+        .filter((w: string) => w.length > 3) //["what", "react", "hook","works"]
+        
+        //Score each chunk - keeping only top 5 
+        const scoredChunks = allChunks.map((chunk) => {
+            const lowerChunk = chunk.chunkText.toLowerCase()
+            const score = queryWords.filter((word: string) => 
+            lowerChunk.includes(word)).length
+            return { chunk, score }
+        })
 
+        const relevantChunks = scoredChunks
+        .filter((c) => c.score > 0)
+        .sort((a, b) => b.score - a.score) //if b-a = +ve, b is greater and comes first
+        .slice(0, 5)
+        .map((c) => c.chunk.chunkText)
+
+        const context = relevantChunks.join("\n\n")
         //Get AI response
         const aiResponse = await getChatResponse(message, context, history || [])
 

@@ -57,7 +57,8 @@ model KnowledgeBase {
   id          String    @id @default(cuid())
   chatbotId   String
   fileName    String
-  rawText     String
+  chunkText   String
+  chunkIndex  Int
   createdAt   DateTime  @default(now())
 
   chatbot     Chatbot   @relation(fields: [chatbotId], references: [id])
