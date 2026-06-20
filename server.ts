@@ -2,6 +2,7 @@ import { createServer } from "http"
 import { parse } from "url"
 import next from "next"
 import { Server as SocketIOServer } from "socket.io"
+import { processChatMessage } from "./lib/process-chat-message"
 
 const dev = process.env.NODE_ENV !== "production"
 const hostname = "localhost"
@@ -31,9 +32,32 @@ app.prepare().then(() => {
     io.on("connection", (socket) => {
         console.log("Client connected:", socket.id)
 
-        socket.on("ping_server", (data) => {
-            console.log("Recieved from client:", data)
-            socket.emit("pong_client", { message: "Hello from server!" })
+        socket.on("send_message", async(data: {
+            chatbotId: string
+            userId: string
+            message: string
+            history: { role: "user" | "model"; parts: { text: string }[] }[]
+        }) => {
+            try{
+                const aiResponse = await processChatMessage(
+                    data.chatbotId,
+                    data.userId,
+                    data.message,
+                    data.history
+                )
+
+                socket.emit("receive_message", {
+                    response: aiResponse,
+                    error: null,
+                })
+            }
+
+            catch (error: any) {
+            socket.emit("receive_message", {
+                response: null,
+                error: error.message || "Something went wrong",
+            })
+        }
         })
 
         socket.on("disconnect", ()=> {

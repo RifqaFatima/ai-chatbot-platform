@@ -2,83 +2,71 @@ generator client {
   provider = "prisma-client-js"
 }
 
-//Datasource Block
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
-//restricts values to a fixed set
-enum Role {
-  USER
-  ADMIN
-}
-
 model User {
-  id            String    @id @default(cuid())
-  name          String?
-  email         String    @unique
-  password      String?     //OAUTH users may not have password
-  role          Role      @default(USER)
-  quotaLimit    Int       @default(100)
-  quotaUsed     Int       @default(0)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-
-  accounts      Account[]  //[] indicates one to many relationship
-  sessions      Session[]
-  chatbots      Chatbot[]
+  id         String    @id @default(cuid())
+  name       String?
+  email      String    @unique
+  password   String?
+  role       Role      @default(USER)
+  quotaLimit Int       @default(100)
+  quotaUsed  Int       @default(0)
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  accounts   Account[]
+  chatbots   Chatbot[]
+  sessions   Session[]
 }
 
 model Chatbot {
-  id              String    @id @default(cuid())
-  name            String
-  userId          String
-  allowedDomains  String[]
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-
-  user            User      @relation(fields: [userId], references: [id])
-  messages        Message[]
-  knowledgeBase   KnowledgeBase[]
+  id             String          @id @default(cuid())
+  name           String
+  userId         String
+  allowedDomains String[]
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  user           User            @relation(fields: [userId], references: [id])
+  knowledgeBase  KnowledgeBase[]
+  messages       Message[]
 }
 
 model Message {
-  id          String    @id @default(cuid())
-  chatbotId   String
-  content     String
-  role        String    // "user" or "assistant"
-  createdAt   DateTime  @default(now())
-
-  chatbot     Chatbot   @relation(fields: [chatbotId], references: [id])
+  id        String   @id @default(cuid())
+  chatbotId String
+  content   String
+  role      String
+  createdAt DateTime @default(now())
+  chatbot   Chatbot  @relation(fields: [chatbotId], references: [id])
 }
 
 model KnowledgeBase {
-  id          String    @id @default(cuid())
-  chatbotId   String
-  fileName    String
-  chunkText   String
-  chunkIndex  Int
-  createdAt   DateTime  @default(now())
-
-  chatbot     Chatbot   @relation(fields: [chatbotId], references: [id])
+  id         String   @id @default(cuid())
+  chatbotId  String
+  fileName   String
+  createdAt  DateTime @default(now())
+  chunkIndex Int
+  chunkText  String
+  chatbot    Chatbot  @relation(fields: [chatbotId], references: [id])
 }
-//Account model to be used by authentication libraries like NextAuth to store info about users who log in thru google etc
-model Account {
-  id                 String  @id @default(cuid())
-  userId             String
-  type               String
-  provider           String
-  providerAccountId  String
-  refresh_token      String?
-  access_token       String?
-  expires_at         Int?
-  token_type         String?
-  scope              String?
-  id_token           String?
-  session_state      String?
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
 }
@@ -88,7 +76,6 @@ model Session {
   sessionToken String   @unique
   userId       String
   expires      DateTime
-
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
@@ -98,4 +85,9 @@ model VerificationToken {
   expires    DateTime
 
   @@unique([identifier, token])
-} 
+}
+
+enum Role {
+  USER
+  ADMIN
+}
