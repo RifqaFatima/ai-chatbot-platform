@@ -60,6 +60,60 @@ app.prepare().then(() => {
         }
         })
 
+        socket.on("widget_send_message", async(data: {
+            chatbotId: string,
+            message: string,
+            history: { role: "user" | "model"; parts: { text: string }[] }[]
+            domain: string
+        }) => {
+            try{
+                const { db } = await import("./lib/db")
+
+                //find chatbot
+                const chatbot = await db.chatbot.findUnique({
+                    where: { id: data. chatbotId}
+                })
+
+                if(!chatbot) {
+                    socket.emit("widget_receive_message", {
+                        response: null,
+                        error: "chatbot not foun!e"
+                    })
+                }
+
+                //Domain restriction check (only enforce if domains are configured)
+                if(
+                    chatbot.allowedDomains.length > 0 && 
+                    !chatbot?.allowedDomains.includes(data.domain)
+                ) {
+                    socket.emit("widget_receive_message", {
+                        response: null,
+                         error: "This domain is not authorized to use this chatbot",
+                    })
+                    return
+                }
+
+                const { processWidgetMessage } = await import (
+                    "./lib/process-widget-message")
+                
+                const aiResponse = await processWidgetMessage(
+                    data.chatbotId,
+                    data.message,
+                    data.history
+                )
+
+                socket.emit("widget_receive_message", {
+                    response: aiResponse,
+                    error: null,
+                } )
+            } catch (error: any) {
+                socket.emit("widget_receive_message", {
+                response: null,
+                error: error.message || "Something went wrong",
+                })
+            }
+        })
+
         socket.on("disconnect", ()=> {
             console.log("Client disconnected:", socket.id)
         })
