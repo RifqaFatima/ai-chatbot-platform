@@ -128,6 +128,18 @@
       font-size: 12px;
       margin-top: 40px;
     }
+    @media (max-width: 480px) {
+      .cwb-window {
+        width: calc(100vw - 24px);
+        height: calc(100vh - 120px);
+        right: 12px;
+        bottom: 80px;
+      }
+      .cwb-bubble {
+        right: 16px;
+        bottom: 16px;
+      }
+    }
   `;
   document.head.appendChild(style);
 
@@ -189,12 +201,19 @@
     return div.innerHTML;
   }
 
-  // ---- Socket connection ----
   function connectSocket() {
     const loaderScript = document.createElement("script");
     loaderScript.src = serverUrl + "/socket.io/socket.io.js";
     loaderScript.onload = () => {
       socket = io(serverUrl, { path: "/socket.io" });
+
+      socket.on("connect_error", () => {
+        messages.push({
+          role: "assistant",
+          content: "Unable to connect. Please try again later.",
+        });
+        renderMessages();
+      });
 
       socket.on("widget_receive_message", (data) => {
         sendBtn.disabled = false;
@@ -206,6 +225,13 @@
         }
         renderMessages();
       });
+    };
+    loaderScript.onerror = () => {
+      messages.push({
+        role: "assistant",
+        content: "Chat service is currently unavailable.",
+      });
+      renderMessages();
     };
     document.head.appendChild(loaderScript);
   }
