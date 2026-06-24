@@ -21,11 +21,11 @@ export async function processWidgetMessage(
     }
 
     //check the chatbot owner's quota (visitor's share the owner's quota)
-    const owner = await db.user.findUnique({
-        where: { id: chatbot.userId },
-    })
+    const { getQuotaUsage, incrementQuotaUsage } = await import("./quota")
 
-    if(owner && owner.quotaUsed >= owner.quotaLimit) {
+    const quota = await getQuotaUsage(chatbot.userId)
+
+    if (quota.used >= quota.limit) {
         throw new Error("This chatbot is currently unavailable")
     }
 
@@ -63,10 +63,7 @@ export async function processWidgetMessage(
         data: { chatbotId, content: aiResponse, role: "assistant" },
     })
 
-    await db.user.update({
-        where: { id: chatbot.userId },
-        data: { quotaUsed: { increment: 1 } },
-    })
+    await incrementQuotaUsage(chatbot.userId)
 
     return aiResponse
 }

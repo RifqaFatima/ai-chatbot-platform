@@ -21,16 +21,14 @@ export async function processChatMessage(
         throw new ErrorEvent("Chatbot not found")
     }
 
-    //find user
-    const user = await db.user.findUnique({
-        where: {id: userId}
-    })
+    const { getQuotaUsage, incrementQuotaUsage } = await import("./quota")
 
-    //check quota
-    if(user && user.quotaUsed >= user.quotaLimit) {
-        throw new Error("Quota Exceeded")
+    const quota = await getQuotaUsage(userId)
+
+    if (quota.used >= quota.limit) {
+        throw new Error("Quota exceeded")
     }
-
+   
     //get knowlegde base chunks
     const allChunks = await db.knowledgeBase.findMany({
         where: { chatbotId }, 
@@ -87,10 +85,7 @@ export async function processChatMessage(
     })
 
     //increment quota
-    await db.user.update({
-        where: {id: userId},
-        data: {quotaUsed: {increment: 1}},
-    })
+    await incrementQuotaUsage(userId)
     return aiResponse
 
 }

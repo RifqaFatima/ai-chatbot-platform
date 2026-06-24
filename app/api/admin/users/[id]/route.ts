@@ -44,5 +44,8 @@ export async function PATCH(
     data,
   })
 
+  const { resetQuotaCache } = await import("@/lib/quota")
+  await resetQuotaCache(id)
+
   return NextResponse.json(updated)
 }
