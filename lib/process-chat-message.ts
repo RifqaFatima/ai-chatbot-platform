@@ -1,5 +1,5 @@
 import { db } from "@/lib/db"
-import { getChatResponse } from "@/lib/gemini"
+import { getAIResponse } from "@/lib/ai-provider"
 
 type HistoryItem = {
     role: "user" | "model"
@@ -60,7 +60,7 @@ export async function processChatMessage(
     const context = relevantChunks.join("\n\n")
 
     //ask gemini
-    const aiResponse = await getChatResponse(
+    const aiResponse = await getAIResponse(
         message,
         context,
         history

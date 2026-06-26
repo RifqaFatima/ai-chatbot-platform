@@ -91,3 +91,14 @@ enum Role {
   USER
   ADMIN
 }
+
+model AIConfig {
+  id           String   @id @default(cuid())
+  provider     String   @default("gemini")
+  model        String   @default("gemini-1.5-flash")
+  temperature  Float    @default(0.7)
+  maxTokens    Int      @default(1000)
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}

@@ -5,6 +5,7 @@ import { db } from "@/lib/db"
 import { Navbar } from "@/components/navbar"
 import { UserRow } from "@/components/admin/user-row"
 import { StatsCards } from "@/components/admin/stats-cards"
+import { AIConfigPanel } from "@/components/admin/ai-config-panel"
 
 export default async function AdminPage() {
   const session = await getServerSession(authOptions)
@@ -23,6 +24,16 @@ export default async function AdminPage() {
   const quotaAgg = await db.user.aggregate({
     _sum: { quotaUsed: true },
   })
+
+  const aiConfig = await db.aIConfig.findFirst({
+    where: { isActive: true},
+
+  }) || {
+    provider: "gemini",
+    model: "gemini-1.5-flash",
+    temperature: 0.7,
+    maxTokens: 1000,
+  }
 
   const stats = {
     totalUsers,
@@ -65,6 +76,7 @@ export default async function AdminPage() {
               ))}
             </tbody>
           </table>
+          <AIConfigPanel initialConfig={aiConfig} />
         </div>
       </div>
     </div>
