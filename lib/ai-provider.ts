@@ -1,3 +1,4 @@
+//AI-abstraction layer: last step of RAG pipeline where context+message actually gets sent to AI model
 import { GoogleGenerativeAI } from "@google/generative-ai"
 import { db } from "./db"
 

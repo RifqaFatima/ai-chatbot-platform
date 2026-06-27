@@ -77,7 +77,7 @@ app.prepare().then(() => {
                 if(!chatbot) {
                     socket.emit("widget_receive_message", {
                         response: null,
-                        error: "chatbot not foun!e"
+                        error: "chatbot not found"
                     })
                 }
 

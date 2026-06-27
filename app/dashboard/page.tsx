@@ -18,6 +18,11 @@ export default async function DashboardPage() {
     orderBy: { createdAt: "desc" },
   })
 
+  const user = await db.user.findUnique({
+    where: { id: session.user.id },
+    select: { quotaUsed: true, quotaLimit: true },
+  })
+
   return (
     <div>
       <Navbar />
@@ -31,6 +36,30 @@ export default async function DashboardPage() {
           </div>
           <CreateChatbotDialog />
         </div>
+        {user && (
+          <div className="mt-4 p-3 bg-gray-50 border rounded-lg inline-flex items-center gap-3">
+            <div>
+              <p className="text-xs text-gray-500">Messages used this period</p>
+              <p className="text-sm font-semibold">
+                {user.quotaUsed}
+                <span className="text-gray-400 font-normal"> / {user.quotaLimit}</span>
+              </p>
+            </div>
+            <div className="w-32 h-2 bg-gray-200 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-blue-600 rounded-full"
+                style={{
+                  width: `${Math.min(
+                    (user.quotaUsed / user.quotaLimit) * 100,
+                    100
+                  )}%`,
+                }}
+              />
+            </div>
+
+          </div>
+        )}
+
 
         <ChatbotList chatbots={chatbots} />
       </div>

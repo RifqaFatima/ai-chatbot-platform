@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react"
 import { Button } from "@/components/ui/button"
+import { ConfirmDialog } from "@/components/ui/confirm-dialog"
 
 type FileEntry = {
     fileName: string
@@ -9,11 +10,12 @@ type FileEntry = {
 }
 
 export function KnowledgeBaseUpload(
-    {chatbotId}: {chatbotId: string}
+    {chatbotId}: {chatbotId: string, fileName: string}
 ){
     const [files, setFiles]= useState<FileEntry[]>([])
     const [uploading, setUploading] = useState(false)
     const [message, setMessage] = useState("")
+    const [confirmFile, setConfirmFile] = useState<string | null>(null)
     const fileInputRef = useRef<HTMLInputElement>(null)
 
     const fetchFiles = async () => {
@@ -27,6 +29,12 @@ export function KnowledgeBaseUpload(
     useEffect(() => {
         fetchFiles()
     }, [chatbotId])
+
+    const deleteFile = async(fileName: string) => {
+        const encoded = encodeURIComponent(fileName)
+        await fetch(`/api/chatbots/${chatbotId}/upload/${encoded}`, {method: "DELETE"})
+        fetchFiles()
+    }
 
     //runs when user selects a file
     //e is a change event coming from an HTML input element
@@ -102,11 +110,30 @@ export function KnowledgeBaseUpload(
                     <div key={f.fileName} 
                     className="text-xs flex items-center justify-between bg-gray-50 px-2 py-1 rounded">
                         <span className="truncate">{f.fileName}</span>
+                        <button
+                            onClick={() => setConfirmFile(f.fileName)}
+                            className="text-gray-400 hover:text-red-500 ml-2"
+                            title="Delete file">
+                            x
+                        </button>
                     </div>
 
                 ))}
-
             </div>
+
+            <ConfirmDialog
+                open={!!confirmFile}
+                title="Delete file?"
+                description={`This will remove "${confirmFile}" and all its content from the knowledge base.`}
+                confirmLabel="Delete"
+                destructive
+                onConfirm={() => {
+                if (confirmFile) deleteFile(confirmFile)
+                setConfirmFile(null)
+                }}
+                onCancel={() => setConfirmFile(null)}
+            />
+
         </div>
     )
 

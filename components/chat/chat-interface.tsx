@@ -17,6 +17,7 @@ export function ChatInterface({ chatbotId }: { chatbotId: string }) {
   const [input, setInput] = useState("")
   const [loading, setLoading] = useState(false)
   const bottomRef = useRef<HTMLDivElement>(null)
+  const [loadingHistory, setLoadingHistory] = useState(true)
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" })
@@ -48,6 +49,28 @@ export function ChatInterface({ chatbotId }: { chatbotId: string }) {
       socket.off("receive_message", handleReceive)
     }
   }, [])
+
+  //chat history loading effect upon refresh
+  useEffect(() => {
+    const loadHistory = async () => {
+      try{
+        const res = await fetch(`/api/chatbots/${chatbotId}/messages`)
+        if(res.ok) {
+          const data = await res.json()
+          const formatted: Message[] = data.map((m: any) => ({
+            role: m.role as "user"|"assistant",
+            content: m.content,
+          }))
+          setMessages(formatted)
+        }
+      } catch(error) {
+          console.error("Failed to load history:", error)
+      } finally {
+        setLoadingHistory(false)
+      }
+    }
+    loadHistory()
+  }, [chatbotId])
 
   const sendMessage = () => {
     if (!input.trim() || loading || !session?.user?.id) return
@@ -86,8 +109,18 @@ export function ChatInterface({ chatbotId }: { chatbotId: string }) {
       <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
         {messages.length === 0 && (
           <div className="text-center text-gray-400 mt-20">
-            <p className="text-lg">Start a conversation</p>
-            <p className="text-sm">Ask anything — or upload documents first for context-aware answers</p>
+            {loadingHistory ? (
+              <div>
+                <p>Loading Conversation...</p>
+              </div>
+            ) : messages.length === 0 ? (
+              <div>
+                <p className="text-lg">Start a conversation</p>
+                <p className="text-sm">
+                  Ask anything — or upload documents first for context-aware answers
+                </p>
+              </div>
+            ) : null}
           </div>
         )}
 

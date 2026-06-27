@@ -1,3 +1,4 @@
+// Immediately Invoked Function expression: no variables leak into the host website's global scope.
 (function () {
   const script = document.currentScript;
   const chatbotId = script.getAttribute("data-chatbot-id");
@@ -14,7 +15,7 @@
   let socket = null;
   let messages = [];
 
-  // ---- Inject styles ----
+  // Inject css styles, all classnames prefixed with ceb to avoid clashes with host site styes
   const style = document.createElement("style");
   style.textContent = `
     .cwb-bubble {
@@ -143,11 +144,12 @@
   `;
   document.head.appendChild(style);
 
-  // ---- Build DOM elements ----
+  // create the chat bubble DOM element and append it to documnet.body
   const bubble = document.createElement("div");
   bubble.className = "cwb-bubble";
   bubble.innerHTML = "💬";
 
+  //create the chatwindow dom element and append it to document.body
   const chatWindow = document.createElement("div");
   chatWindow.className = "cwb-window";
   chatWindow.innerHTML = `
@@ -168,17 +170,17 @@
   const inputEl = chatWindow.querySelector("#cwb-input");
   const sendBtn = chatWindow.querySelector("#cwb-send");
 
-  // ---- Toggle open/close ----
+  // click handlers (bubble click--> toggle window open/close)
   bubble.addEventListener("click", () => {
     isOpen = !isOpen;
     chatWindow.classList.toggle("cwb-open", isOpen);
 
     if (isOpen && !socket) {
-      connectSocket();
+      connectSocket(); //lazy loading : socket connection ahppens only after user clicks on chat bubble, prevents host website slowdown
     }
   });
 
-  // ---- Render messages ----
+  //Render messages
   function renderMessages() {
     if (messages.length === 0) {
       messagesEl.innerHTML = `<div class="cwb-empty">Ask us anything</div>`;
@@ -236,7 +238,7 @@
     document.head.appendChild(loaderScript);
   }
 
-  // ---- Send message ----
+  // Send message
   function sendMessage() {
     const text = inputEl.value.trim();
     if (!text || !socket) return;

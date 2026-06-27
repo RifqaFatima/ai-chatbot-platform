@@ -56,23 +56,31 @@ export async function PATCH (
 }
 
 export async function DELETE(
-    req: Request,
-    { params }: { params: {id: string}}
+  req: Request,
+  { params }: { params: Promise<{ id: string }> }
 ) {
+    const { id } = await params;
     const session = await getServerSession(authOptions)
 
     if(!session) {
         return NextResponse.json({ error: "Unauthorized"}, {status: 401})
     }
     const chatbot = await db.chatbot.findUnique({
-        where: {id: params.id},
+        where: {id: id},
     })
+
+    //error logging
+    console.log("ID:", id)
+    console.log("Chatbot:", chatbot)
+    console.log("Session User:", session.user.id)
 
     if(!chatbot || chatbot.userId !== session.user.id) {
         return NextResponse.json({error: "not Found"}, {status: 404})
     }
 
-     await db.chatbot.delete({ where: { id: params.id } })
+    await db.message.deleteMany({ where: { chatbotId: id } })
+    await db.knowledgeBase.deleteMany({ where: { chatbotId: id } })
+    await db.chatbot.delete({ where: { id: id } })
 
     return NextResponse.json({ message: "Deleted" })
 }
